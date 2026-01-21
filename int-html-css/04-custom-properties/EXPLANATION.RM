@@ -1,0 +1,171 @@
+Locally Scoped Custom Properties Pattern (Explanation)
+Overview
+
+This component uses locally scoped CSS custom properties to allow visual variants (plans) to change behavior and appearance without duplicating selectors or state logic.
+
+Instead of writing new selectors for each variant and interaction state (e.g. hover), the component defines internal fallback variables and allows variants to override only values, not rules.
+
+This pattern improves scalability, maintainability, and refactor safety.
+
+Core Idea
+
+The .plan component defines internal (“private”) custom properties that act as its configuration inputs:
+
+.plan {
+  --_button-hover: var(--button-hover, var(--clr-text));
+}
+
+
+--_button-hover is the value the component actually uses
+
+--button-hover is an optional external override
+
+var(--button-hover, var(--clr-text)) provides a fallback if no override exists
+
+The component never depends directly on the public variable — it only consumes the internal one.
+
+Why the Underscore Matters
+
+The underscore naming convention communicates intent:
+
+Variable	Purpose
+--button-hover	Public API (may be overridden by variants)
+--_button-hover	Private/internal (used only inside .plan)
+
+This mirrors encapsulation in programming languages:
+
+External code can change inputs
+
+Internal implementation remains flexible
+
+Refactors do not break consumers
+
+How Variants Customize Behavior
+
+Each variant sets only custom property values, not selectors:
+
+.plan--pram {
+  --button-hover: var(--clr-yellow-400);
+}
+
+
+Because CSS custom properties inherit, this value flows into .plan, where it is picked up by:
+
+--_button-hover: var(--button-hover, var(--clr-text));
+
+
+No additional selectors are required.
+
+Centralized State Logic
+
+The hover and focus behavior is defined once:
+
+.plan .button:hover,
+.plan .button:focus {
+  background-color: var(--_button-hover);
+}
+
+
+This means:
+
+Interaction logic lives in one place
+
+Variants do not reimplement hover behavior
+
+Adding new variants never increases selector complexity
+
+Comparison With Traditional CSS
+Traditional approach (what this replaces)
+.plan--pram .button:hover {
+  background-color: yellow;
+}
+
+.plan--bike .button:hover {
+  background-color: cyan;
+}
+
+
+Problems:
+
+Repeated selectors
+
+Repeated state logic
+
+New variants require new rules
+
+Harder to refactor or change interaction behavior globally
+
+Custom property–driven approach (current)
+.plan {
+  --_button-hover: var(--button-hover, var(--clr-text));
+}
+
+.plan--bike {
+  --button-hover: var(--clr-cyan-400);
+}
+
+
+Benefits:
+
+One hover rule
+
+Infinite variants
+
+Clear separation of structure vs configuration
+
+Easier long-term maintenance
+
+Why This Scales Well
+
+This pattern allows you to:
+
+Add new variants by setting variables only
+
+Change interaction behavior globally in one place
+
+Refactor internal styling without touching variants
+
+Treat components as configurable units instead of hard-coded rules
+
+In larger codebases, this prevents:
+
+Selector explosion
+
+Cascade conflicts
+
+Overuse of !important
+
+Variant-specific bug regressions
+
+Mental Model
+
+Think of the .plan component as a function:
+
+renderPlan({
+  buttonHoverColor = defaultTextColor,
+  shadowColor,
+  iconColor
+})
+
+
+Custom properties act as arguments, not styles.
+
+Summary
+
+.plan defines internal, private custom properties
+
+Variants override public variables only
+
+State logic is centralized and reused
+
+Visual differences are data-driven, not selector-driven
+
+This results in cleaner CSS that scales over time
+
+If you want next, I can:
+
+Rewrite this into a shorter “TL;DR” README section
+
+Show how this pattern maps to component props in React/Vue
+
+Help you formalize a variable naming convention for larger projects
